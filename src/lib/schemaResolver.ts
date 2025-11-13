@@ -196,14 +196,16 @@ export function resolveSchema(definitionName: string, definitions: any): Resolve
 /**
  * Formats a definition name by removing io.k8s.api prefix and replacing dots with slashes
  */
-function formatDefinitionName(name: string): string {
+export function formatDefinitionName(name: string): string {
+  const prefixes = ['io.k8s.api.', 'io.k8s.', 'apimachinery.pkg.apis.', 'kubernetes.pkg.'];
 	let formatted = name;
 	// Remove io.k8s.api prefix
-	if (formatted.startsWith('io.k8s.api.')) {
-		formatted = formatted.replace('io.k8s.api.', '');
-	} else if (formatted.startsWith('io.k8s.')) {
-		formatted = formatted.replace('io.k8s.', '');
-	}
+  for (const prefix of prefixes) {
+      if (formatted.startsWith(prefix)) {
+        formatted = formatted.replace(prefix, '');
+        break;
+      }
+    }
 	// Replace dots with slashes
 	formatted = formatted.replace(/\./g, '/');
 	return formatted;

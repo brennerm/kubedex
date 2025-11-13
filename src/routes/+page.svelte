@@ -1,25 +1,12 @@
 <script lang="ts">
-	import api from '$lib/swagger.json';
-	import { resolveSchema, getTopLevelDefinitionNames, getOriginalDefinitionName, type ResolvedSchema } from '$lib/schemaResolver';
+	import api from '$lib/apis/k8s/1.34/swagger.json';
+	import { resolveSchema, getTopLevelDefinitionNames, getOriginalDefinitionName, type ResolvedSchema, formatDefinitionName } from '$lib/schemaResolver';
 	import PropertyTree from '$lib/PropertyTree.svelte';
+	import { k8sApi } from '$lib/k8s-api.svelte';
 
 	let searchTerm = $state('');
 	let selectedDefinition = $state<string | null>(null);
-	let resolvedSchema = $state<ResolvedSchema | null>(null);
-	let error = $state<string | null>(null);
-
-	// Get only top-level definition names (not referenced by others)
-	const allDefinitions = getTopLevelDefinitionNames(api.definitions);
-
-	// Filter definitions based on search
-	let filteredDefinitions = $derived(
-		searchTerm
-			? allDefinitions.filter((def) => def.toLowerCase().includes(searchTerm.toLowerCase()))
-			: allDefinitions
-	);
-
-	// Resolve schema when definition is selected
-	$effect(() => {
+	let resolvedSchema = $derived.by<ResolvedSchema | null>(() => {
 		if (selectedDefinition) {
 			try {
 				// Convert formatted name back to original definition name
@@ -27,35 +14,26 @@
 				if (!originalName) {
 					throw new Error(`Could not find definition for "${selectedDefinition}"`);
 				}
-				resolvedSchema = resolveSchema(originalName, api.definitions);
-				// Update the display name to use formatted version
-				// resolvedSchema.name = selectedDefinition;
-				error = null;
+				return resolveSchema(originalName, api.definitions);
 			} catch (e) {
-				error = e instanceof Error ? e.message : 'Unknown error';
-				resolvedSchema = null;
+				return null;
 			}
 		} else {
-			resolvedSchema = null;
-			error = null;
+			return null;
 		}
 	});
+
+  const allDefinitions = $derived(getTopLevelDefinitionNames(k8sApi.getDefinitions()))
+
+	// Filter definitions based on search
+	let filteredDefinitions = $derived(
+		searchTerm
+			? allDefinitions.filter((def) => def.toLowerCase().includes(searchTerm.toLowerCase()))
+			: allDefinitions
+	);
 </script>
 
-<div class="min-h-screen bg-base-200">
 	<div class="container mx-auto p-6 max-w-7xl">
-		<!-- Hero Section -->
-		<div class="hero bg-base-100 rounded-box shadow-lg mb-6">
-			<div class="hero-content text-center py-12">
-				<div class="max-w-2xl">
-					<h1 class="text-5xl font-bold mb-4">kubedex</h1>
-					<p class="text-lg text-base-content/70">
-						Explore Kubernetes API resources with their complete property definitions
-					</p>
-				</div>
-			</div>
-		</div>
-
 		<!-- Search and Select Section -->
 		<div class="card bg-base-100 shadow-xl mb-6">
 			<div class="card-body">
@@ -74,15 +52,9 @@
 						id="search"
 						type="text"
 						placeholder="Type to filter resources..."
-						class="input input-bordered input-primary w-full"
+						class="input input-bordered w-full"
 						bind:value={searchTerm}
 					/>
-					<div class="label">
-						<span class="label-text-alt">
-							<span class="badge badge-neutral badge-sm">{filteredDefinitions.length}</span>
-							resources found
-						</span>
-					</div>
 				</div>
 
 				<div class="form-control">
@@ -91,10 +63,10 @@
 					</label>
 					<select
 						id="resource-select"
-						class="select select-bordered select-primary w-full"
+						class="select select-bordered w-full"
 						bind:value={selectedDefinition}
 					>
-						<option value={null}>-- Select a resource --</option>
+						<option value={null}>-- Select a resource ({filteredDefinitions.length}) --</option>
 						{#each filteredDefinitions as def}
 							<option value={def}>{def}</option>
 						{/each}
@@ -103,54 +75,21 @@
 			</div>
 		</div>
 
-		<!-- Error Alert -->
-		{#if error}
-			<div role="alert" class="alert alert-error shadow-lg mb-6">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					class="stroke-current shrink-0 h-6 w-6"
-					fill="none"
-					viewBox="0 0 24 24"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-					/>
-				</svg>
-				<span>{error}</span>
-			</div>
-		{/if}
-
 		<!-- Schema Display -->
 		{#if resolvedSchema}
 			<div class="card bg-base-100 shadow-xl">
 				<div class="card-body">
-					<h2 class="card-title text-3xl mb-4">
-						<span class="badge badge-primary badge-lg font-mono">{resolvedSchema.name}</span>
+					<h2 class="card-title text-xl mb-4">
+						<span class="font-mono">{formatDefinitionName(resolvedSchema.name)}</span>
 					</h2>
 
 					{#if resolvedSchema.description}
-						<div role="alert" class="alert alert-info mb-6">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								fill="none"
-								viewBox="0 0 24 24"
-								class="stroke-current shrink-0 w-6 h-6"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-								></path>
-							</svg>
-							<span>{resolvedSchema.description}</span>
-						</div>
+						<p class="mb-6 whitespace-pre-wrap">
+							{resolvedSchema.description}
+            </p>
 					{/if}
 
-					<div class="divider divider-primary">
+					<div class="divider">
 						<span class="text-lg font-semibold">Properties</span>
 					</div>
 
@@ -196,4 +135,3 @@
 			</div>
 		{/if}
 	</div>
-</div>

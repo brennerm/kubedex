@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PropertyInfo } from './schemaResolver';
+	import { formatDefinitionName, type PropertyInfo } from './schemaResolver';
 	import PropertyTree from './PropertyTree.svelte';
 
 	interface Props {
@@ -17,11 +17,11 @@
 
 	function getTypeDisplay(prop: PropertyInfo): string {
 		if (prop.isArray && prop.ref) {
-			return `array<${prop.ref}>`;
+			return `${formatDefinitionName(prop.ref)}[]`;
 		} else if (prop.isArray) {
-			return 'array';
+			return '[]';
 		} else if (prop.ref) {
-			return prop.ref;
+			return formatDefinitionName(prop.ref);
 		}
 		return prop.type;
 	}
@@ -31,7 +31,7 @@
 	}
 </script>
 
-<div class="property-item mb-2" style="margin-left: {level * 1.5}rem">
+<div class="property-item mb-2" style="margin-left: {level * 0.5}rem">
 	<div class="flex items-start gap-2">
 		{#if hasNestedContent(property)}
 			<button
@@ -39,7 +39,7 @@
 				onclick={toggleExpand}
 				aria-label={expanded ? 'Collapse' : 'Expand'}
 			>
-				{expanded ? '▼' : '▶'}
+        <span class="transition-transform duration-300" class:-rotate-90={!expanded}>▼</span>
 			</button>
 		{:else}
 			<div class="w-8 shrink-0"></div>
@@ -47,19 +47,20 @@
 
 		<div class="flex-1 min-w-0">
 			<div class="flex items-center gap-3 flex-wrap mb-1">
-				<span class="font-mono font-semibold text-primary text-base {property.required ? 'text-error' : ''}">
+				<span class="font-mono font-semibold text-base">
 					{property.name}
 				</span>
-				<span class="font-mono text-sm text-base-content/60 italic">
+				{#if property.required}
+					<span class="badge badge-error badge-xs font-bold">required</span>
+				{/if}
+
+				<span class="font-mono text-xs text-base-content/60 italic wrap-anywhere justify-self-end text-right grow">
 					{getTypeDisplay(property)}
 				</span>
-				{#if property.required}
-					<span class="badge badge-error badge-sm">required</span>
-				{/if}
 			</div>
 
 			{#if property.description}
-				<div class="text-sm leading-relaxed text-base-content/70 whitespace-pre-wrap wrap-break-word mt-1">
+				<div class="text-sm leading-relaxed text-base-content/70 whitespace-pre-wrap wrap-anywhere mt-1">
 					{property.description}
 				</div>
 			{/if}
