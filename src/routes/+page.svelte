@@ -48,7 +48,7 @@
 		<div class="hero bg-base-100 rounded-box shadow-lg mb-6">
 			<div class="hero-content text-center py-12">
 				<div class="max-w-2xl">
-					<h1 class="text-5xl font-bold mb-4">Kubernetes Resource Explorer</h1>
+					<h1 class="text-5xl font-bold mb-4">kubedex</h1>
 					<p class="text-lg text-base-content/70">
 						Explore Kubernetes API resources with their complete property definitions
 					</p>
