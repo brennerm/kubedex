@@ -6,6 +6,7 @@
 
 html, body {
   scrollbar-gutter: stable;
+  font-family: 'Nunito Sans Variable', sans-serif;
 }
 
 /* make Svelecte look like daisyUI input */

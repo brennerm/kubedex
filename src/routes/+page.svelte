@@ -108,7 +108,7 @@
 					</h2>
 
 					{#if resolvedSchema.description}
-						<p class="mb-6 whitespace-pre-wrap">
+						<p class="whitespace-pre-wrap">
 							{resolvedSchema.description}
 						</p>
 					{/if}
