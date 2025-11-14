@@ -4,7 +4,7 @@ import type { PropertyInfo } from './schemaResolver';
  * Simple fuzzy matching function
  * Returns true if all characters in the search term appear in order in the text
  */
-export function fuzzyMatch(text: string, search: string): boolean {
+export function fuzzyMatch(text: string, search: string | null): boolean {
 	if (!search) return true;
 	
 	const textLower = text.toLowerCase();
@@ -25,20 +25,17 @@ export function fuzzyMatch(text: string, search: string): boolean {
  * Checks if a property or any of its children match the search
  * Used for determining if a property should be auto-expanded
  */
-export function propertyMatchesSearch(property: PropertyInfo, search: string): boolean {
-	if (!search) return false;
+export function propertyMatchesSearch(property: PropertyInfo, search: string | null): boolean {
+	if (!search) return true;
 	
 	// Check if property name matches
 	if (fuzzyMatch(property.name, search)) return true;
 	
-	// Check if description matches
 	if (property.description && fuzzyMatch(property.description, search)) return true;
 	
-	// Check if type matches
 	if (fuzzyMatch(property.type, search)) return true;
 	
-	// Check if ref matches
-	if (property.ref && fuzzyMatch(property.ref, search)) return true;
+	if (property.required && fuzzyMatch('required', search)) return true;
 	
 	// Check if any nested properties match
 	if (property.properties && property.properties.length > 0) {

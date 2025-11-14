@@ -28,7 +28,12 @@ class K8sApi {
 	#error = $state<string | null>(null);
 
 	constructor() {
-		// Load the first version on initialization
+    const savedVersion = localStorage.getItem('k8sApiVersion');
+
+    if (savedVersion && availableApiVersions.includes(savedVersion)) {
+      this.#selectedVersion = savedVersion;
+    }
+
 		this.loadVersion(this.#selectedVersion);
 	}
 
@@ -40,6 +45,8 @@ class K8sApi {
 		if (availableApiVersions.includes(version)) {
 			this.#selectedVersion = version;
 			await this.loadVersion(version);
+
+      localStorage.setItem('k8sApiVersion', version);
 		}
 	}
 

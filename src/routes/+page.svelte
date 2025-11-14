@@ -8,8 +8,10 @@
 	} from '$lib/schemaResolver';
 	import PropertyTree from '$lib/PropertyTree.svelte';
 	import { k8sApi } from '$lib/k8s-api.svelte';
+	import { propertyMatchesSearch } from '$lib/fuzzySearch';
+	import Svelecte from 'svelecte';
 
-	let searchTerm = $state('');
+	let propertyFilter = $state('');
 	let selectedDefinition = $state<string | null>(null);
 
 	let resolvedSchema = $derived.by<ResolvedSchema | null>(() => {
@@ -32,13 +34,6 @@
 
 	const allDefinitions = $derived(
 		k8sApi.isLoaded ? getTopLevelDefinitionNames(k8sApi.getDefinitions()) : []
-	);
-
-	// Filter definitions based on search
-	let filteredDefinitions = $derived(
-		searchTerm
-			? allDefinitions.filter((def) => def.toLowerCase().includes(searchTerm.toLowerCase()))
-			: allDefinitions
 	);
 </script>
 
@@ -90,33 +85,15 @@
 					Select a Resource
 				</h2>
 
-				<div class="form-control mb-4">
-					<label for="search" class="label">
-						<span class="label-text font-semibold">Search resources</span>
-					</label>
-					<input
-						id="search"
-						type="text"
-						placeholder="Type to filter resources..."
-						class="input-bordered input w-full"
-						bind:value={searchTerm}
-					/>
-				</div>
-
 				<div class="form-control">
 					<label for="resource-select" class="label">
 						<span class="label-text font-semibold">Resource definition</span>
 					</label>
-					<select
-						id="resource-select"
-						class="select-bordered select w-full"
+					<Svelecte
+						options={allDefinitions}
 						bind:value={selectedDefinition}
-					>
-						<option value={null}>-- Select a resource ({filteredDefinitions.length}) --</option>
-						{#each filteredDefinitions as def}
-							<option value={def}>{def}</option>
-						{/each}
-					</select>
+						placeholder="Type to filter resources..."
+					></Svelecte>
 				</div>
 			</div>
 		</div>
@@ -139,9 +116,19 @@
 						<span class="text-lg font-semibold">Properties</span>
 					</div>
 
+					<div class="form-control mb-4 max-w-lg">
+						<input
+							id="property-filter"
+							type="text"
+							placeholder="Type to filter properties..."
+							class="input-bordered input w-full"
+							bind:value={propertyFilter}
+						/>
+					</div>
+
 					{#if resolvedSchema.properties.length > 0}
 						<div class="overflow-x-auto">
-							{#each resolvedSchema.properties as property}
+							{#each resolvedSchema.properties.filter( (el) => propertyMatchesSearch(el, propertyFilter) ) as property}
 								<PropertyTree {property} />
 							{/each}
 						</div>

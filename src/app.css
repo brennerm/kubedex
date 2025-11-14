@@ -1,4 +1,25 @@
 @import 'tailwindcss';
+
 @plugin "daisyui" {
   themes: nord --default, dim --prefersdark;
- }
+}
+
+html, body {
+  scrollbar-gutter: stable;
+}
+
+/* make Svelecte look like daisyUI input */
+.svelecte {
+  --sv-min-height: 40px;
+  --sv-bg: var(--color-base-100);
+  --sv-border: 1px solid color-mix(in oklab, var(--color-base-content) 20%, transparent);
+  --sv-border-radius: var(--radius-field);
+  --sv-control-bg: var(--sv-bg);
+  --sv-placeholder-color: color-mix(in oklab, var(--color-base-content) 50%, transparent);
+  --sv-dropdown-bg: var(--sv-bg);
+  --sv-dropdown-border: var(--sv-border);
+  --sv-dropdown-width: auto;
+  --sv-dropdown-height: 320px;
+  --sv-dropdown-active-bg: var(--color-base-300);
+  --sv-dropdown-selected-bg: var(--color-base-300);
+}
