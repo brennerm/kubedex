@@ -8,8 +8,9 @@
 	} from '$lib/schemaResolver';
 	import PropertyTree from '$lib/PropertyTree.svelte';
 	import { k8sApi } from '$lib/k8s-api.svelte';
-	import { filterProperties, propertyMatchesSearch } from '$lib/fuzzySearch';
+	import { filterProperties } from '$lib/fuzzySearch';
 	import Svelecte from 'svelecte';
+	import { debounce } from '$lib';
 
 	let propertyFilter = $state('');
 	let selectedDefinition = $state<string | null>(null);
@@ -21,7 +22,7 @@
 				// Convert formatted name back to original definition name
 				const originalName = getOriginalDefinitionName(selectedDefinition, definitions);
 				if (!originalName) {
-					throw new Error(`Could not find definition for "${selectedDefinition}"`);
+					return null;
 				}
 				return resolveSchema(originalName, definitions);
 			} catch (e) {
@@ -92,7 +93,7 @@
 					<Svelecte
 						options={allDefinitions}
 						bind:value={selectedDefinition}
-						placeholder="Type to filter resources..."
+						placeholder="Type to filter {allDefinitions.length} resources..."
 					></Svelecte>
 				</div>
 			</div>
@@ -122,7 +123,7 @@
 							type="text"
 							placeholder="Type to filter properties..."
 							class="input-bordered input w-full"
-							bind:value={propertyFilter}
+							onkeyup={debounce((event: KeyboardEvent) => propertyFilter = (event.target as HTMLInputElement).value)}
 						/>
 					</div>
 

@@ -1,14 +1,13 @@
 <script lang="ts">
-	import { formatDefinitionName, type PropertyInfo } from './schemaResolver';
+	import { formatDefinitionName, getPropertiesCount, type PropertyInfo } from './schemaResolver';
 	import PropertyTree from './PropertyTree.svelte';
 
 	interface Props {
 		property: PropertyInfo;
-		filter?: string;
 		level?: number;
 	}
 
-	let { property, filter, level = 0 }: Props = $props();
+	let { property, level = 0 }: Props = $props();
 
 	let expanded = $state(true);
 
@@ -77,7 +76,7 @@
 		<div class="min-w-0 flex-1">
 			<div class="mb-1 flex flex-wrap items-center gap-3">
 				<span class="font-mono text-base font-semibold tracking-wide">
-					{property.name} <small class="font-normal text-base-content/80">{property.properties?.length && '(' + property.properties.length + ')'}</small>
+					{property.name} <small class="font-normal text-base-content/80">{property.properties?.length && '(' + getPropertiesCount(property) + ')'}</small>
 				</span>
 				{#if property.required}
 					<span class="badge badge-xs badge-soft font-bold badge-error">required</span>

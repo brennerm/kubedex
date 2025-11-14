@@ -246,10 +246,13 @@ export function getTopLevelDefinitionNames(definitions: any): string[] {
 	return allDefinitions
 		.filter(name => {
 			// Exclude List objects (e.g., PodList, DeploymentList, etc.)
-			if (name.endsWith('List')) return false;
+			// if (name.endsWith('List')) return false;
+			// Exclude Spec and Status definitions
+			if (name.endsWith('Spec')) return false;
+			if (name.endsWith('Status')) return false;
 			
 			// Exclude if referenced by others
-			if (referencedDefinitions.has(name)) return false;
+			// if (referencedDefinitions.has(name)) return false;
 			
 			return true;
 		})
@@ -307,4 +310,18 @@ export function getOriginalDefinitionName(formattedName: string, definitions: an
 	}
 	
 	return null;
+}
+
+export function getPropertiesCount(property: PropertyInfo): number {
+	let count = 0;
+
+	if (property.properties && property.properties.length > 0) {
+		count += property.properties.length;
+
+		for (const child of property.properties) {
+			count += getPropertiesCount(child);
+		}
+	}
+
+	return count;
 }
